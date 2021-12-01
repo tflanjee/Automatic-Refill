@@ -2,11 +2,13 @@
 
 #Initialising Variables
 TimeSinceRefill=0
+TimeLastRefill=0
 
 USER INPUTS MainlineFlowRate #Should be 15-60l/min
 USER INPUTS BagCapacity #Should be about 10
 USER INPUTS WaterBeforeRefill #Should be about 5000
 USER INPUTS FlowRatio
+USER INPUTS SmallPumpRate
 
 
 Void(Loop){
@@ -24,7 +26,6 @@ ELSEIF (Flow Switch =1){
 Repeat=0 #This resets the repeat value so that when the flow is no longer on, it starts to refill again
 }
 
-}
 
 } #End of Void(loop)
 
