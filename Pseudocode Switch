@@ -3,7 +3,6 @@
 #Initialising Variables
 TimeSinceRefill=0
 
-USER INPUTS MainlineFlowRate #Should be 15-60l/min
 USER INPUTS BagCapacity #Should be about 10
 USER INPUTS WaterBeforeRefill #Should be about 5000
 USER INPUTS FlowRatio
@@ -11,9 +10,17 @@ USER INPUTS FlowRatio
 
 Void(Loop){
 
-TimeSinceRefill=Time-TimeLastRefill #Time should be in minutes
 
-Read FlowSwitch
+TimeSinceRefill=Time-TimeLastRefill #Time should be in minutes
+FlowMeter=Read Flow Meter (1 for water flowing, 0 if water is off) 
+
+While WaterThrough<WaterBeforeRefill {
+
+WaterThrough=FlowMeter*TimeInterval #Time Interval between this reading and last reading
+If FlowMeter>1{
+	FlowSwitch=1
+Else FlowSwitch=0
+}
 
 If (FlowSwitch=0) {
 	If Repeat=0{ #This repeat value ensures that the device is just refilled once, rather than repeatedly.
@@ -25,6 +32,13 @@ Repeat=0 #This resets the repeat value so that when the flow is no longer on, it
 }
 
 }
+}
+#The refill process is currently triggered by the mainline water being off. We also want to trigger it when the bag is completely empty.
+#The other code runs until the bag is empty. When the bag is empty, the water that's been through the doser is the amount of water
+#that can be purified before refill. Therefore we come outside of that while loop to this code.
+
+Function REFILL
+
 
 } #End of Void(loop)
 
@@ -38,7 +52,7 @@ Function REFILL
   ChlorineRefill=1
   Pump=1
   
-  BagRefill=BagCapacity-(MainLineFlowRate*TimeSinceRefill*FlowRatio)
+  BagRefill=BagCapacity-(FlowMeter*TimeSinceRefill*FlowRatio)
   X = BagRefill/SmallPumpRate #This determines how long the minipump should be on for to refill the whole bag. Note this is variable depending on how between refills. 
   After X minutes
   ChlorineAirRelease=1
@@ -53,5 +67,6 @@ Function REFILL
   
   Repeat=1
   TimeLastRefill=Time
+  WaterThrough=0 #Resets the amount of water that has been through the doser since the last refill
 }
 
