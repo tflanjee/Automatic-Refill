@@ -1,21 +1,25 @@
+#@Tom do we need to put the scaling flush in here too?
+
 #Initialising Variables
 
-X = BagCapacity/SmallPumpRate
+X = BagCapacity/SmallPumpRate #This determines how long the minipump should be on for to refill the whole bag
 
 Read Flow Switch (1 for water flowing, 0 if water is off) 
 If (Flow Switch=0) {
-	If Repeat=0{
+	If Repeat=0{ #This repeat value ensures that the device is just refilled once, rather than repeatedly.
 	Function REFILL
 }
 }
 ELSEIF (Flow Switch =1){
-Repeat=0
+Repeat=0 #This resets the repeat value so that when the flow is no longer on, it starts to refill again
 }
+#This function below is the actual refill process. 0 means a valve is closed or a pump is off, 1 means a valve is open or a pump is on.
 Function REFILL{
   PressureLine=0
   ChlorineLine=0
   WaterAirRelease=1
   ChlorineRefill=1
+  Pump=1
   
   After X minutes
   ChlorineAirRelease=1
@@ -26,6 +30,7 @@ Function REFILL{
   WaterAirRelease=0
   ChlorineLine=1
   PressureLine=0
+  Pump=0
   
   Repeat=1
 }
