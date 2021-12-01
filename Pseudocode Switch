@@ -1,0 +1,32 @@
+#Initialising Variables
+
+X = BagCapacity/SmallPumpRate
+
+Read Flow Switch (1 for water flowing, 0 if water is off) 
+If (Flow Switch=0) {
+	If Repeat=0{
+	Function REFILL
+}
+}
+ELSEIF (Flow Switch =1){
+Repeat=0
+}
+Function REFILL{
+  PressureLine=0
+  ChlorineLine=0
+  WaterAirRelease=1
+  ChlorineRefill=1
+  
+  After X minutes
+  ChlorineAirRelease=1
+  Wait 5 seconds
+  ChlorineAirRelease=0
+  
+  Chlorine Refill=0
+  WaterAirRelease=0
+  ChlorineLine=1
+  PressureLine=0
+  
+  Repeat=1
+}
+Wait 5 seconds before going reading the flow switch again
