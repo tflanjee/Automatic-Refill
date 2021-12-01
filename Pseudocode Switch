@@ -1,4 +1,4 @@
-#@Tom do we need to put the scaling flush in here too?
+
 
 #Initialising Variables
 TimeSinceRefill=0
