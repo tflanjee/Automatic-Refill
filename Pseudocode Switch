@@ -3,19 +3,17 @@
 #Initialising Variables
 TimeSinceRefill=0
 TimeLastRefill=0
+BagFull=0 # BagFull is a variable that reads whether the bag is full or not. This will be done either using a cheap flow meter at the water air release port 
+#or via a pressure sensor within the bag. 
 
-USER INPUTS MainlineFlowRate #Should be 15-60l/min
-USER INPUTS BagCapacity #Should be about 10
-USER INPUTS WaterBeforeRefill #Should be about 5000
-USER INPUTS FlowRatio
-USER INPUTS SmallPumpRate
+USER INPUT RunOutTime #This will vary depending on the flow rate of the pump. The user could input it with 
 
 
 Void(Loop){
 
-TimeSinceRefill=Time-TimeLastRefill #Time should be in minutes
 
-Read FlowSwitch
+
+Read FlowSwitch #The flow switch is 1 if there is water flowing and 0 if there is no water flowing.
 
 If (FlowSwitch=0) {
 	If Repeat=0{ #This repeat value ensures that the device is just refilled once, rather than repeatedly.
@@ -23,7 +21,11 @@ If (FlowSwitch=0) {
 }
 }
 ELSEIF (Flow Switch =1){
+TimeSinceRefill=Time-TimeLastRefill #Time should be in minutes
 Repeat=0 #This resets the repeat value so that when the flow is no longer on, it starts to refill again
+	IF TimeSinceRefill > RunOutTime{
+	Function REFILL
+	}
 }
 
 
@@ -33,15 +35,18 @@ Repeat=0 #This resets the repeat value so that when the flow is no longer on, it
 #This function below is the actual refill process. 0 means a valve is closed or a pump is off, 1 means a valve is open or a pump is on.
 
 Function REFILL
-  PressureLine=0
-  ChlorineLine=0
-  WaterAirRelease=1
-  ChlorineRefill=1
-  Pump=1
+ 
   
-  BagRefill=BagCapacity-(MainLineFlowRate*TimeSinceRefill*FlowRatio)
-  X = BagRefill/SmallPumpRate #This determines how long the minipump should be on for to refill the whole bag. Note this is variable depending on how between refills. 
-  After X minutes
+  While BagFull=0{
+  	 PressureLine=0
+	  ChlorineLine=0
+	  WaterAirRelease=1
+	  ChlorineRefill=1
+	  Pump=1
+	  Read BagFull
+	  }
+  
+  
   ChlorineAirRelease=1
   Wait 5 seconds
   ChlorineAirRelease=0
