@@ -5,17 +5,22 @@ TimeSinceRefill=0
 TimeLastRefill=0
 BagFull=0 # BagFull is a variable that reads whether the bag is full or not. This will be done either using a cheap flow meter at the water air release port 
 #or via a pressure sensor within the bag. 
+Flush=0
+DosingLED=1
+RefillLED=0.
 
-USER INPUT RunOutTime #This will vary depending on the flow rate of the pump. The user could input it with 
+USER INPUT RunOutTime #This will vary depending on the flow rate of the pump. The user could input it using dip switches.
 
 
 Void(Loop){
 
+Read PressureSensor
+If PressureSensor-PressureSensorLastValue > Cutoff
+	FlowSwitch = FlowSwitch * (-1)
+FlowSwitch #The flow switch is 1 if there is water flowing and -1 if there is no water flowing. 
 
 
-Read FlowSwitch #The flow switch is 1 if there is water flowing and 0 if there is no water flowing.
-
-If (FlowSwitch=0) {
+If (FlowSwitch=-1) {
 	If Repeat=0{ #This repeat value ensures that the device is just refilled once, rather than repeatedly.
 	Function REFILL
 }
@@ -23,6 +28,10 @@ If (FlowSwitch=0) {
 ELSEIF (Flow Switch =1){
 TimeSinceRefill=Time-TimeLastRefill #Time should be in minutes
 Repeat=0 #This resets the repeat value so that when the flow is no longer on, it starts to refill again
+	If Flush=1{
+	Function FlushSystem
+	Flush=0
+	}
 	IF TimeSinceRefill > RunOutTime{
 	Function REFILL
 	}
@@ -35,7 +44,14 @@ Repeat=0 #This resets the repeat value so that when the flow is no longer on, it
 #This function below is the actual refill process. 0 means a valve is closed or a pump is off, 1 means a valve is open or a pump is on.
 
 Function REFILL
+ Delay(10000) #10 second delay whilst pump starts.
+ DosingLED=0
+ RefillLED=1
  
+Read BagFull
+	If BagFull = 1{
+	ErrorLED = 1
+	}
   
   While BagFull=0{
   	 PressureLine=0
@@ -59,5 +75,21 @@ Function REFILL
   
   Repeat=1
   TimeLastRefill=Time
+  Flush=1
+  DosingLED=1
+  RefillLED=0
+}
+
+#This function is for automatically flushing the narrow section to get rid of any blockages.
+
+Function FLUSHSYSTEM {
+FlushValve=1
+delay(500) #delay is in miliseconds
+FlushValve=0
+ChlorineLine=1
+FlushValve=1
+delay(500)
+FlushValve=0
+ChlorineLine=0
 }
 
