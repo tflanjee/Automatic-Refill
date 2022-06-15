@@ -9,7 +9,7 @@ Flush=0
 DosingLED=1
 RefillLED=0.
 
-USER INPUT RunOutTime #This will vary depending on the flow rate of the pump. The user could input it using dip switches.
+USER INPUT RunOutTime #This will vary depending on the flow rate of the pump. The user could input it using 3 dip switches.
 
 
 Void(Loop){
@@ -50,7 +50,12 @@ Function REFILL
  
 Read BagFull
 	If BagFull = 1{
-	ErrorLED = 1
+	ErrorLED = 1 #User manual should ensure that there is enough chlorine in the refill reservoir. The reset dipswitch should be pressed to reset the system.
+	While dipswitch = 0 { #Pause here until issue is fixed.
+	}
+		If dipswitch=1{
+		delay(10000) #delay whilst pump turns on. User should later unpress the dipswitch.
+		}
 	}
   
   While BagFull=0{
