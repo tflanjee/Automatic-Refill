@@ -1,4 +1,4 @@
-
+##Tom to add hold button for cases where there is no water in the vessel (eg. first time filling).
 
 #Initialising Variables
 TimeSinceRefill=0
@@ -7,35 +7,40 @@ BagFull=0 # BagFull is a variable that reads whether the bag is full or not. Thi
 #or via a pressure sensor within the bag. 
 Flush=0
 DosingLED=1
-RefillLED=0.
+RefillLED=0
+
+#It's important that the flow switch variable is initialised properly eg. the user should set the code running whilst the water is off and the flowswitch
+#should be initialised to -1
 
 USER INPUT RunOutTime #This will vary depending on the flow rate of the pump. The user could input it using 3 dip switches.
 
 
+
 Void(Loop){
 
-Read PressureSensor
+Read PressureSensor #Pressure sensor is in main water line and detects a change from water off/on.
 If PressureSensor-PressureSensorLastValue > Cutoff
 	FlowSwitch = FlowSwitch * (-1)
+	If (FlowSwitch=-1) {
+	If Repeat=0{ #This repeat value ensures that the device is just refilled once, rather than repeatedly.
+	Function REFILL
+	}
+	}
+	ELSEIF (Flow Switch =1){
+	TimeSinceRefill=Time-TimeLastRefill #Time should be in minutes
+	Repeat=0 #This resets the repeat value so that when the flow is no longer on, it starts to refill again
+		If Flush=1{
+		Function FlushSystem
+		Flush=0
+		}
+		IF TimeSinceRefill > RunOutTime{
+		Function REFILL
+		}
+	}
 FlowSwitch #The flow switch is 1 if there is water flowing and -1 if there is no water flowing. 
 
 
-If (FlowSwitch=-1) {
-	If Repeat=0{ #This repeat value ensures that the device is just refilled once, rather than repeatedly.
-	Function REFILL
-}
-}
-ELSEIF (Flow Switch =1){
-TimeSinceRefill=Time-TimeLastRefill #Time should be in minutes
-Repeat=0 #This resets the repeat value so that when the flow is no longer on, it starts to refill again
-	If Flush=1{
-	Function FlushSystem
-	Flush=0
-	}
-	IF TimeSinceRefill > RunOutTime{
-	Function REFILL
-	}
-}
+
 
 
 } #End of Void(loop)
@@ -49,7 +54,7 @@ Function REFILL
  RefillLED=1
  
 Read BagFull
-	If BagFull = 1{
+	If BagFull = 1{ # BagFull is a variable that reads whether the bag is full (1) or not (0). This will be done either using a cheap flow mete
 	ErrorLED = 1 #User manual should ensure that there is enough chlorine in the refill reservoir. The reset dipswitch should be pressed to reset the system.
 	While dipswitch = 0 { #Pause here until issue is fixed.
 	}
@@ -59,11 +64,11 @@ Read BagFull
 	}
   
   While BagFull=0{
-  	 PressureLine=0
-	  ChlorineLine=0
-	  WaterAirRelease=1
-	  ChlorineRefill=1
-	  Pump=1
+  	 PressureLine=0 #pressureline is a valve
+	  ChlorineLine=0 #chlorinelineis a valve
+	  WaterAirRelease=1 #waterairrelease is a valve
+	  ChlorineRefill=1 #chlorinerefill is a valve
+	  Pump=1 =minipump
 	  Read BagFull
 	  }
   
